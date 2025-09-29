@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contentful HTML Example</title>
+    <script src="https://cdn.jsdelivr.net/npm/contentful@latest/dist/contentful.browser.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var client = contentful.createClient({
+                space: 'lvm6j6tun2o7',
+                accessToken: 'L4bqz4pyxpG1aB8vYoRxnJ3vwLCdYTGWSyi8XDTT1DM'
+            });
+
+            client.getEntry('5yJoYb26qDCaeItM3ToWYB').then(function(entry) {
+                // Assuming 'fields.title' is where your title is stored
+                var title = entry.fields.titulo;
+                document.getElementById('content-title').textContent = title;
+                var post = entry.fields.post;
+                document.getElementById('content-post').innerHTML = post;
+                var image = entry.fields.imagen.fields.file.url;
+                document.getElementById('content-image').src = image;
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1 id="content-title">Loading title...</h1>
+    <div id="content-post">Loading post...</div>
+    <img id="content-image" src="" alt="Loading image..." />
+</body>
+</html>

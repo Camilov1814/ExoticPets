@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGlobal S.A.S - Gestión de Trabajadores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TechGlobal S.A.S</h1>
+            <p class="subtitle">Sistema de Gestión de Trabajadores</p>
+        </header>
+
+        <div class="content">
+            <!-- Panel de creación -->
+            <section class="card">
+                <h2>Nuevo Trabajador</h2>
+                <form id="trabajadorForm">
+                    <div class="form-group">
+                        <input type="text" id="nombre" placeholder="Nombre completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="cargo" placeholder="Cargo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" id="salario" placeholder="Salario" step="0.01" required>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-primary" onclick="crearTrabajador('rds')">
+                            Guardar en RDS
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="crearTrabajador('mongo')">
+                            Guardar en MongoDB
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Panel de consultas -->
+            <section class="card">
+                <h2>Consultar Trabajadores</h2>
+                <div class="button-group">
+                    <button class="btn btn-outline" onclick="consultarTrabajadores('rds')">
+                        Consultar RDS
+                    </button>
+                    <button class="btn btn-outline" onclick="consultarTrabajadores('mongo')">
+                        Consultar MongoDB
+                    </button>
+                </div>
+            </section>
+
+            <!-- Panel de resultados -->
+            <section class="card" id="resultados" style="display: none;">
+                <div class="results-header">
+                    <h2>Resultados</h2>
+                    <span id="dbType" class="badge"></span>
+                </div>
+                <div id="trabajadoresList"></div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Notificaciones -->
+    <div id="notification" class="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
