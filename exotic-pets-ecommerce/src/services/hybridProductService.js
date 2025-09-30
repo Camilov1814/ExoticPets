@@ -75,14 +75,38 @@ class HybridProductService {
     return merged;
   }
 
-  // Process Contentful image assets
+  // Process Contentful image assets (supports single image or array)
   processContentfulImages(imageAsset) {
     if (!imageAsset) return null;
 
+    // Handle array of images
+    if (Array.isArray(imageAsset)) {
+      return imageAsset.map(img => this.processSingleImage(img)).filter(Boolean);
+    }
+
+    // Handle single image
+    return [this.processSingleImage(imageAsset)].filter(Boolean);
+  }
+
+  // Process a single image asset
+  processSingleImage(imageAsset) {
+    if (!imageAsset || !imageAsset.fields?.file?.url) return null;
+
+    const baseUrl = `https:${imageAsset.fields.file.url}`;
+
     return {
-      url: imageAsset.fields?.file?.url ? `https:${imageAsset.fields.file.url}` : null,
+      url: baseUrl,
       alt: imageAsset.fields?.description || '',
-      title: imageAsset.fields?.title || ''
+      title: imageAsset.fields?.title || '',
+      // Generate different sizes for responsive images
+      sizes: {
+        thumbnail: `${baseUrl}?w=150&h=150&fit=fill`,
+        small: `${baseUrl}?w=300&h=300&fit=fill`,
+        medium: `${baseUrl}?w=600&h=600&fit=fill`,
+        large: `${baseUrl}?w=1200&h=1200&fit=fill`,
+        gallery: `${baseUrl}?w=800&h=600&fit=fill`,
+        hero: `${baseUrl}?w=1920&h=1080&fit=fill`
+      }
     };
   }
 

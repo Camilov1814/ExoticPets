@@ -1,0 +1,260 @@
+# AWS API Gateway Configuration for Exotic Pets Platform
+# This file defines the API Gateway setup that routes between Lambda and OpenShift services
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API Gateway for Exotic Pets Platform - Routes between Lambda and OpenShift'
+
+Parameters:
+  StageName:
+    Type: String
+    Default: 'prod'
+    Description: 'API Gateway stage name'
+
+  LambdaFunctionArn:
+    Type: String
+    Description: 'ARN of the image processing Lambda function'
+
+  OpenShiftEndpoint:
+    Type: String
+    Description: 'OpenShift API endpoint URL'
+    Default: 'https://exotic-pets-api.apps.your-cluster.com'
+
+Resources:
+  # API Gateway REST API
+  ExoticPetsAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: exotic-pets-platform-api
+      Description: 'Unified API Gateway for Exotic Pets Platform'
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Policy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 'execute-api:Invoke'
+            Resource: '*'
+
+  # Lambda Integration Resources
+  LambdaResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ParentId: !GetAtt ExoticPetsAPI.RootResourceId
+      PathPart: 'lambda'
+
+  ImageProcessingResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ParentId: !Ref LambdaResource
+      PathPart: 'process-image'
+
+  # OpenShift Proxy Resources
+  OpenShiftResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ParentId: !GetAtt ExoticPetsAPI.RootResourceId
+      PathPart: 'api'
+
+  ProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ParentId: !Ref OpenShiftResource
+      PathPart: '{proxy+}'
+
+  # Lambda Method
+  ImageProcessingMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ResourceId: !Ref ImageProcessingResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunctionArn}/invocations'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseHeaders:
+            Access-Control-Allow-Origin: true
+            Access-Control-Allow-Headers: true
+            Access-Control-Allow-Methods: true
+
+  # OPTIONS method for CORS (Lambda)
+  ImageProcessingOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ResourceId: !Ref ImageProcessingResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseHeaders:
+            Access-Control-Allow-Headers: true
+            Access-Control-Allow-Methods: true
+            Access-Control-Allow-Origin: true
+
+  # OpenShift Proxy Method (ALL)
+  ProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ResourceId: !Ref ProxyResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.proxy: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: ANY
+        Uri: !Sub '${OpenShiftEndpoint}/{proxy}'
+        RequestParameters:
+          integration.request.path.proxy: 'method.request.path.proxy'
+        IntegrationResponses:
+          - StatusCode: 200
+
+  # OPTIONS method for CORS (OpenShift)
+  ProxyOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      ResourceId: !Ref ProxyResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Api-Key'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ''
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: 200
+          ResponseHeaders:
+            Access-Control-Allow-Headers: true
+            Access-Control-Allow-Methods: true
+            Access-Control-Allow-Origin: true
+
+  # API Gateway Deployment
+  APIDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ImageProcessingMethod
+      - ImageProcessingOptionsMethod
+      - ProxyMethod
+      - ProxyOptionsMethod
+    Properties:
+      RestApiId: !Ref ExoticPetsAPI
+      StageName: !Ref StageName
+      StageDescription: 'Production stage for Exotic Pets API'
+
+  # Lambda Permission
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ExoticPetsAPI}/*/*'
+
+  # API Key for rate limiting
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: exotic-pets-api-key
+      Description: 'API Key for Exotic Pets Platform'
+      Enabled: true
+
+  # Usage Plan
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName: exotic-pets-usage-plan
+      Description: 'Usage plan for Exotic Pets Platform'
+      ApiStages:
+        - ApiId: !Ref ExoticPetsAPI
+          Stage: !Ref StageName
+      Throttle:
+        BurstLimit: 100
+        RateLimit: 50
+      Quota:
+        Limit: 10000
+        Period: DAY
+
+  # Link API Key to Usage Plan
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+  # Custom Domain (optional)
+  DomainName:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: api.exotic-pets.com
+      CertificateArn: !Sub 'arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/your-certificate-id'
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  # Base Path Mapping
+  BasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName: !Ref DomainName
+      RestApiId: !Ref ExoticPetsAPI
+      Stage: !Ref StageName
+
+Outputs:
+  APIGatewayURL:
+    Description: 'API Gateway endpoint URL'
+    Value: !Sub 'https://${ExoticPetsAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-APIGatewayURL'
+
+  APIKey:
+    Description: 'API Key for rate limiting'
+    Value: !Ref ApiKey
+    Export:
+      Name: !Sub '${AWS::StackName}-APIKey'
+
+  CustomDomainURL:
+    Description: 'Custom domain URL'
+    Value: !Sub 'https://${DomainName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-CustomDomainURL'
+
+  EndpointMapping:
+    Description: 'Endpoint routing information'
+    Value: !Sub |
+      Lambda Endpoints:
+      - POST https://${ExoticPetsAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/lambda/process-image
+
+      OpenShift Proxy Endpoints:
+      - ANY https://${ExoticPetsAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/api/*

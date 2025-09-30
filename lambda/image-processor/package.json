@@ -1,0 +1,25 @@
+{
+  "name": "exotic-pets-image-processor",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for processing exotic pets product images",
+  "main": "index.js",
+  "scripts": {
+    "build": "zip -r deployment.zip .",
+    "test": "node test.js",
+    "deploy": "aws lambda update-function-code --function-name exotic-pets-image-processor --zip-file fileb://deployment.zip"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1691.0",
+    "sharp": "^0.33.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "image-processing",
+    "exotic-pets",
+    "ecommerce"
+  ]
+}

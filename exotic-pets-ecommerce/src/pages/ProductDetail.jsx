@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../redux/cartSlice';
 import { hybridProductService } from '../services/hybridProductService';
+import ImageGallery from '../components/common/ImageGallery';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -52,10 +53,8 @@ export default function ProductDetail() {
         // Image from Contentful or fallback
         image: product.images?.url ? (product.images.url.startsWith('http') ? product.images.url : `https:${product.images.url}`) : null,
         imageAlt: product.name,
-        // Create image galleries for products that have Contentful images
-        imageGallery: product.images?.url ? [
-          { url: product.images.url.startsWith('http') ? product.images.url : `https:${product.images.url}`, alt: product.name }
-        ] : []
+        // Use processed images array from hybrid service
+        images: product.images || []
       }));
       
       setProducts(formattedProducts);
@@ -239,35 +238,23 @@ export default function ProductDetail() {
             
             {/* Sección de imagen */}
             <div className="space-y-6">
-              {/* Imagen principal */}
-              <div className="relative overflow-hidden experimental-nav-item">
-                {product.image ? (
-                  <img
-                    src={product.image}
-                    alt={product.imageAlt}
-                    className="object-cover w-full h-96 md:h-[500px] rounded-2xl"
-                    onError={(e) => {
-                      console.error('Image failed to load:', product.image);
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-96 md:h-[500px] bg-gradient-to-br from-nature-600/20 to-nature-500/20 rounded-2xl">
-                    <div className="text-6xl opacity-50">{getCategoryIcon(product.category)}</div>
-                  </div>
-                )}
-                
+              {/* Gallery de imágenes con nuevo componente */}
+              <div className="relative experimental-nav-item">
+                <ImageGallery
+                  images={product.images}
+                  productName={product.name}
+                />
+
                 {/* Badge */}
                 {product.badge && (
-                  <div className={`absolute top-4 left-4 px-3 py-1 text-xs font-bold text-white rounded-full ${product.badgeColor}`}>
+                  <div className={`absolute top-4 left-4 px-3 py-1 text-xs font-bold text-white rounded-full ${product.badgeColor} z-10`}>
                     {product.badge}
                   </div>
                 )}
 
                 {/* Descuento */}
                 {product.originalPrice && (
-                  <div className="absolute px-3 py-1 text-xs font-bold text-white bg-red-500 rounded-full top-4 right-4">
+                  <div className="absolute px-3 py-1 text-xs font-bold text-white bg-red-500 rounded-full top-4 right-4 z-10">
                     -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                   </div>
                 )}

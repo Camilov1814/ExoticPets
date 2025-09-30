@@ -1,0 +1,121 @@
+service: exotic-pets-image-processor
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: 1024
+  timeout: 30
+  environment:
+    BUCKET_NAME: ${self:custom.bucketName}
+    STAGE: ${self:provider.stage}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:DeleteObject
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucketName}/*"
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        - "arn:aws:s3:::${self:custom.bucketName}"
+
+custom:
+  bucketName: exotic-pets-images-${self:provider.stage}
+
+functions:
+  imageProcessor:
+    handler: index.handler
+    events:
+      # S3 trigger for automatic processing
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/
+            - suffix: .jpg
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/
+            - suffix: .jpeg
+      - s3:
+          bucket: ${self:custom.bucketName}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploads/
+            - suffix: .png
+      # API Gateway for manual processing
+      - http:
+          path: /process-image
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    # S3 Bucket for images
+    ImagesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [GET, PUT, POST, DELETE]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
+        NotificationConfiguration:
+          LambdaConfigurations:
+            - Event: s3:ObjectCreated:*
+              Function: !GetAtt ImageProcessorLambdaFunction.Arn
+              Filter:
+                S3Key:
+                  Rules:
+                    - Name: prefix
+                      Value: uploads/
+
+    # CloudFront distribution for fast image delivery
+    ImagesCDN:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - DomainName: !GetAtt ImagesBucket.RegionalDomainName
+              Id: S3Origin
+              S3OriginConfig:
+                OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOAI}"
+          DefaultCacheBehavior:
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingOptimized
+          Enabled: true
+          Comment: "Exotic Pets Images CDN"
+
+    # CloudFront Origin Access Identity
+    CloudFrontOAI:
+      Type: AWS::CloudFront::OriginAccessIdentity
+      Properties:
+        OriginAccessIdentityConfig:
+          Comment: "OAI for Exotic Pets Images"
+
+  Outputs:
+    ImagesBucketName:
+      Value: !Ref ImagesBucket
+      Export:
+        Name: ${self:service}-${self:provider.stage}-images-bucket
+
+    ImagesCDNDomain:
+      Value: !GetAtt ImagesCDN.DomainName
+      Export:
+        Name: ${self:service}-${self:provider.stage}-cdn-domain
+
+plugins:
+  - serverless-offline
