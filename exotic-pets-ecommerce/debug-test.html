@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Analytics Debug Test</title>
+    
+    <!-- Google Analytics 4 Test -->
+    <script>
+      // Initialize dataLayer
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // Debug info
+      console.log('🚀 GA4 Test initializing at:', new Date().toISOString());
+      console.log('🌐 Domain:', window.location.hostname);
+      console.log('📍 Full URL:', window.location.href);
+    </script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4B5XF8H7H3"></script>
+    <script>
+      // Check environment
+      const isLocalhost = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost');
+      
+      console.log('🏠 Is Localhost:', isLocalhost);
+      console.log('☁️ Is CloudFront:', !isLocalhost);
+      
+      gtag('config', 'G-4B5XF8H7H3', {
+        page_title: 'Analytics Debug Test',
+        page_location: window.location.href,
+        custom_map: {
+          'custom_parameter_1': isLocalhost ? 'localhost_test' : 'cloudfront_test'
+        },
+        debug_mode: isLocalhost,
+        anonymize_ip: isLocalhost,
+        allow_google_signals: !isLocalhost,
+        allow_ad_personalization_signals: !isLocalhost,
+        send_page_view: true
+      });
+      
+      // Verify GA loaded
+      setTimeout(() => {
+        if (typeof gtag === 'function') {
+          console.log('✅ Google Analytics loaded successfully!');
+          console.log('📊 gtag function available:', typeof gtag);
+          console.log('📈 dataLayer length:', window.dataLayer ? window.dataLayer.length : 'N/A');
+          
+          // Send test event
+          gtag('event', 'debug_test', {
+            'custom_parameter_test': 'analytics_working',
+            'custom_parameter_timestamp': new Date().toISOString(),
+            'custom_parameter_hostname': window.location.hostname
+          });
+          console.log('🧪 Test event sent to Google Analytics');
+        } else {
+          console.error('❌ Google Analytics failed to load');
+          console.log('🔍 window.gtag type:', typeof window.gtag);
+          console.log('🔍 dataLayer:', window.dataLayer);
+        }
+      }, 2000);
+    </script>
+  </head>
+  <body>
+    <div style="padding: 20px; font-family: Arial, sans-serif;">
+      <h1>🧪 Google Analytics Debug Test</h1>
+      <p>Check the browser console for debug information.</p>
+      <div id="status" style="padding: 10px; margin: 10px 0; background: #f0f0f0;">
+        <strong>Loading...</strong>
+      </div>
+      <button onclick="manualTest()" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer;">
+        📊 Send Manual Test Event
+      </button>
+    </div>
+
+    <script>
+      function manualTest() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'manual_test_click', {
+            'event_category': 'debug',
+            'event_label': 'manual_button_click',
+            'custom_timestamp': new Date().toISOString()
+          });
+          console.log('🎯 Manual test event sent!');
+          document.getElementById('status').innerHTML = '<strong style="color: green;">✅ Manual test event sent! Check Network tab for GA requests.</strong>';
+        } else {
+          console.error('❌ gtag not available for manual test');
+          document.getElementById('status').innerHTML = '<strong style="color: red;">❌ Google Analytics not loaded</strong>';
+        }
+      }
+
+      // Update status after load
+      setTimeout(() => {
+        const status = document.getElementById('status');
+        if (typeof gtag === 'function') {
+          status.innerHTML = '<strong style="color: green;">✅ Google Analytics is working!</strong>';
+        } else {
+          status.innerHTML = '<strong style="color: red;">❌ Google Analytics failed to load</strong>';
+        }
+      }, 3000);
+    </script>
+  </body>
+</html>

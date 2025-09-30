@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React App Debug Test</title>
+    
+    <!-- Google Analytics -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      console.log('🚀 App Debug - GA4 initializing');
+    </script>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4B5XF8H7H3"></script>
+    <script>
+      const isLocalhost = window.location.hostname.includes('localhost');
+      
+      gtag('config', 'G-4B5XF8H7H3', {
+        page_title: 'App Debug Test',
+        debug_mode: isLocalhost
+      });
+      
+      setTimeout(() => {
+        console.log('✅ GA Debug - Analytics loaded successfully');
+      }, 1000);
+    </script>
+
+    <!-- Test if assets load -->
+    <script>
+      console.log('📍 App Debug - Testing asset loading');
+      
+      // Test CSS loading
+      fetch('./assets/index-DbbLv2YF.css')
+        .then(response => {
+          console.log('✅ CSS loads:', response.status, response.statusText);
+        })
+        .catch(error => {
+          console.error('❌ CSS failed:', error);
+        });
+
+      // Test JS loading
+      fetch('./assets/index-C5dqNGxn.js')
+        .then(response => {
+          console.log('✅ Main JS loads:', response.status, response.statusText);
+          console.log('📄 Content-Type:', response.headers.get('content-type'));
+        })
+        .catch(error => {
+          console.error('❌ Main JS failed:', error);
+        });
+
+      // Test vendor JS
+      fetch('./assets/vendor-D53QtZak.js')
+        .then(response => {
+          console.log('✅ Vendor JS loads:', response.status, response.statusText);
+        })
+        .catch(error => {
+          console.error('❌ Vendor JS failed:', error);
+        });
+    </script>
+  </head>
+  <body>
+    <div style="padding: 20px; font-family: Arial, sans-serif;">
+      <h1>🔧 React App Debug Test</h1>
+      <p>This page tests if your React app assets are loading correctly on CloudFront.</p>
+      <div id="status" style="padding: 15px; margin: 10px 0; background: #f0f0f0; border-radius: 5px;">
+        <strong>Testing asset loading... Check console for results.</strong>
+      </div>
+      
+      <h3>Expected Results:</h3>
+      <ul>
+        <li>✅ CSS loads: 200 OK</li>
+        <li>✅ Main JS loads: 200 OK</li>
+        <li>✅ Vendor JS loads: 200 OK</li>
+        <li>Content-Type should be: application/javascript or text/javascript</li>
+      </ul>
+
+      <h3>If assets fail to load:</h3>
+      <ol>
+        <li>Check S3 bucket permissions</li>
+        <li>Verify files were uploaded to correct paths</li>
+        <li>Check CloudFront cache invalidation</li>
+        <li>Verify MIME types in S3</li>
+      </ol>
+    </div>
+  </body>
+</html>

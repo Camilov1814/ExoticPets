@@ -1,0 +1,155 @@
+
+
+@charset "UTF-8";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #1a1a1a;
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .experimental-nav-item {
+    @apply relative overflow-hidden transition-all duration-500 border cursor-pointer bg-gradient-to-br from-dark-800 to-dark-700 rounded-2xl border-nature-600/20 hover:border-nature-500/40;
+  }
+  
+  .experimental-nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(173, 212, 104, 0.1), transparent);
+    transition: left 0.5s;
+  }
+  
+  .experimental-nav-item:hover::before {
+    left: 100%;
+  }
+  
+  .nature-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #ADD468;
+    border-radius: 50%;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .leaf-decoration {
+    @apply absolute pointer-events-none text-nature-500 opacity-20;
+    filter: blur(0.5px);
+  }
+  
+  .glow-green {
+    box-shadow: 0 0 20px rgba(173, 212, 104, 0.3);
+  }
+}
+  
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 10px rgba(173, 212, 104, 0.5);
+  }
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #82AA65, #ADD468);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #ADD468, #82AA65);
+}
+
+/* Efectos de partículas */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Agregadas al final del archivo existente */
+
+/* Animaciones adicionales para el footer */
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 5px rgba(173, 212, 104, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(173, 212, 104, 0.8), 0 0 30px rgba(173, 212, 104, 0.6); }
+}
+
+.text-glow-animation {
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+/* Efectos de resplandor mejorados */
+.glow-green-strong {
+  box-shadow: 
+    0 0 20px rgba(173, 212, 104, 0.4),
+    0 0 40px rgba(173, 212, 104, 0.2),
+    0 0 60px rgba(173, 212, 104, 0.1);
+}
+
+/* Efectos de partículas mejorados */
+.particle-trail::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(173, 212, 104, 0.1) 0%, transparent 70%);
+  animation: particleTrail 2s linear infinite;
+}
+
+@keyframes particleTrail {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Slider personalizado */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #82AA65, #ADD468);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(173, 212, 104, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #82AA65, #ADD468);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(173, 212, 104, 0.3);
+}

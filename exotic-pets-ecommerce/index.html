@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Tienda online de mascotas exóticas - Reptiles, anfibios, arácnidos y aves" />
+    
+    <!-- Google Analytics 4 - Localhost Development -->
+    <script>
+      // Initialize dataLayer
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      
+      // Debug info for all environments
+      console.log('🚀 GA4 initializing at:', new Date().toISOString(), 'Domain:', window.location.hostname);
+    </script>
+    
+    <!-- Google tag (gtag.js) for localhost development -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4B5XF8H7H3"></script>
+    <script>
+      // Check if running on localhost or CloudFront
+      const isLocalhost = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.hostname.includes('localhost');
+      
+      const isCloudFront = window.location.hostname.includes('cloudfront.net');
+      const isProduction = !isLocalhost;
+      
+      gtag('config', 'G-4B5XF8H7H3', {
+        // Dynamic configuration based on environment
+        page_title: isLocalhost ? 'Exotic Pets Ecommerce - Development' : 'Exotic Pets Ecommerce',
+        page_location: window.location.href,
+        custom_map: {
+          'custom_parameter_1': isLocalhost ? 'localhost_development' : 'cloudfront_production'
+        },
+        // Enable debug mode for localhost only
+        debug_mode: isLocalhost,
+        // Production configuration
+        anonymize_ip: isLocalhost,
+        allow_google_signals: !isLocalhost,
+        allow_ad_personalization_signals: !isLocalhost,
+        send_page_view: true,
+        // Cookie domain configuration for different environments
+        cookie_domain: isLocalhost ? 'localhost' : 'auto',
+        cookie_flags: isProduction ? 'SameSite=None;Secure' : 'SameSite=Lax',
+        // CloudFront specific settings
+        transport_url: isCloudFront ? undefined : undefined,
+        first_party_collection: true
+      });
+      
+      // Verify GA loaded correctly with environment-specific logging
+      setTimeout(() => {
+        if (typeof gtag === 'function') {
+          const environment = isLocalhost ? 'localhost' : (isCloudFront ? 'cloudfront' : 'production');
+          console.log('✅ Google Analytics loaded successfully on ' + environment);
+          gtag('event', 'page_load_success', {
+            'custom_parameter_deployment': environment,
+            'custom_parameter_timestamp': new Date().toISOString(),
+            'custom_parameter_hostname': window.location.hostname,
+            'custom_parameter_is_cloudfront': isCloudFront
+          });
+        } else {
+          console.error('❌ Google Analytics failed to load on ' + (isLocalhost ? 'localhost' : 'production'));
+        }
+      }, 1000);
+    </script>
+    
+    <title>Especies Exóticas - Tu tienda de mascotas especializadas</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
